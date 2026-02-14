@@ -189,4 +189,19 @@ with tab2:
     y5_clean["Net Income"] = y5_clean["Net Income"].apply(lambda x: f"${x:,.0f}")
     
     st.dataframe(y5_clean)
-    st.info("💡 Note: Positive Margins are safe.
+    st.info("💡 Note: Positive Margins are safe. Negative Margins indicate funding gaps.")
+
+with tab3:
+    st.subheader("Obligated Group (OG) Performance")
+    
+    og_data = forecast[(forecast["Is_OG"] == True) | (forecast["School"].str.contains("CWB") & cwb_join_og)]
+    
+    if not og_data.empty:
+        og_agg = og_data.groupby("Year")[["Net Income", "Final Rent"]].sum()
+        # Proxy DSCR
+        og_agg["DSCR Proxy"] = (og_agg["Net Income"] + og_agg["Final Rent"]) / og_agg["Final Rent"]
+        
+        st.line_chart(og_agg["DSCR Proxy"])
+        st.markdown(f"**Current Smoothing Status:** {'✅ Active' if og_smoothing_active else '❌ Inactive'}")
+    else:
+        st.warning("No schools in Obligated Group.")
